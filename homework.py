@@ -1,6 +1,7 @@
 from typing import Optional
+from dataclasses import dataclass, asdict
 
-
+@dataclass
 class InfoMessage:
     """Информационное сообщение о тренировке."""
     def __init__(self, training_type: str,
@@ -77,7 +78,6 @@ class SportsWalking(Training):
     CALORIES_SPEED_HEIGHT_MULTIPLIER: float = 0.029
     LEN_STEP: float = 0.65
     M_IN_H: int = 60
-    M_IN_KM: int = 1000
     KMH_IN_MSEC: float = 0.278
     CM_IN_M: int = 100
 
@@ -88,8 +88,9 @@ class SportsWalking(Training):
 
     def get_spent_calories(self) -> float:
         """Получить затраченные калории в классе "спортивная хотьба"."""
+        GET_MEAN_SPEED_MSEC: float = self.get_mean_speed() * self.KMH_IN_MSEC
         return ((self.CALORIES_WEIGHT_MULTIPLIER * self.weight
-                + ((self.get_mean_speed() * self.KMH_IN_MSEC)**2
+                + (GET_MEAN_SPEED_MSEC**2
                  / self.height / self.CM_IN_M)
                  * self.CALORIES_SPEED_HEIGHT_MULTIPLIER * self.weight)
                 * self.duration * self.M_IN_H)
