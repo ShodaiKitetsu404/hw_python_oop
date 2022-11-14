@@ -1,5 +1,6 @@
-from typing import Optional
-from dataclasses import dataclass, asdict
+from dataclasses import dataclass
+from typing import Dict, Type
+
 
 @dataclass
 class InfoMessage:
@@ -63,7 +64,7 @@ class Training:
 class Running(Training):
     """Тренировка: бег."""
     CALORIES_MEAN_SPEED_MULTIPLIER: int = 18
-    CALORIES_MEAN_SPEED_SHIFT: float = 1.79
+    CALORIES_MEAN_SPEED_SHIFT: int = 1.79
 
     def get_spent_calories(self) -> float:
         """Получить количество затраченных калорий в классе "бег"."""
@@ -76,31 +77,28 @@ class SportsWalking(Training):
     """Тренировка: спортивная ходьба."""
     CALORIES_WEIGHT_MULTIPLIER: float = 0.035
     CALORIES_SPEED_HEIGHT_MULTIPLIER: float = 0.029
-    LEN_STEP: float = 0.65
-    M_IN_H: int = 60
-    KMH_IN_MSEC: float = 0.278
-    CM_IN_M: int = 100
+    KMH_IN_MSEC = 0.278
+    CM_IN_M = 100
 
     def __init__(self, action: int, duration: float,
                  weight: float, height: float) -> None:
-        self.height = height
         super().__init__(action, duration, weight)
+        self.height = height
 
     def get_spent_calories(self) -> float:
         """Получить затраченные калории в классе "спортивная хотьба"."""
-        GET_MEAN_SPEED_MSEC: float = self.get_mean_speed() * self.KMH_IN_MSEC
-        return ((self.CALORIES_WEIGHT_MULTIPLIER * self.weight
-                + (GET_MEAN_SPEED_MSEC**2
-                 / self.height / self.CM_IN_M)
-                 * self.CALORIES_SPEED_HEIGHT_MULTIPLIER * self.weight)
-                * self.duration * self.M_IN_H)
+        per_minute = (self.CALORIES_WEIGHT_MULTIPLIER * self.weight
+                      + ((self.get_mean_speed() * self.KMH_IN_MSEC)**2
+                         / (self.height / self.CM_IN_M))
+                      * self.CALORIES_SPEED_HEIGHT_MULTIPLIER * self.weight)
+        return per_minute * self.duration * self.MIN_IN_H
 
 
 class Swimming(Training):
     """Тренировка: плавание."""
-    LEN_STEP = 1.38
-    CALORIES_MEAN_SPEED_SHIFT = 1.1
-    CALORIES_WEIGHT_MULTIPLIER = 2
+    LEN_STEP: float = 1.38
+    CALORIES_MEAN_SPEED_SHIFT: float = 1.1
+    CALORIES_WEIGHT_MULTIPLIER: int = 2
 
     def __init__(self,
                  action: int,
@@ -125,13 +123,12 @@ class Swimming(Training):
                 * self.weight * self.duration)
 
 
-def read_package(workout_type: str, data: list) -> Optional[Training]:
+def read_package(workout_type: str, data: list) -> Training:
     """Прочитать данные полученные от датчиков."""
-    training_type = {
+    training_type: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
-        'WLK': SportsWalking
-    }
+        'WLK': SportsWalking}
     if workout_type in training_type:
         return training_type[workout_type](*data)
     return print('Ошибка. Такой тренировки нет')
@@ -152,5 +149,4 @@ if __name__ == '__main__':
 
     for workout_type, data in packages:
         training = read_package(workout_type, data)
-        if training is not None:
-            main(training)
+        main(training)
