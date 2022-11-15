@@ -1,28 +1,26 @@
-from dataclasses import dataclass
-from typing import Dict, Type
+from dataclasses import dataclass, asdict
+from typing import Dict, Type, List
 
 
 @dataclass
 class InfoMessage:
-    """Информационное сообщение о тренировке."""
-    def __init__(self, training_type: str,
-                 duration: float,
-                 distance: float,
-                 speed: float,
-                 calories: float):
-        self.training_type = training_type
-        self.duration = duration
-        self.distance = distance
-        self.speed = speed
-        self.calories = calories
+    """Информационное сообщение о тренировке"""
+
+    training_type: str
+    duration: float
+    distance: float
+    speed: float
+    calories: float
+
+    message: str = ('Тип тренировки: {training_type}; '
+                    'Длительность: {duration:.3f} ч.; '
+                    'Дистанция: {distance:.3f} км; '
+                    'Ср. скорость: {speed:.3f} км/ч; '
+                    'Потрачено ккал: {calories:.3f}.')
 
     def get_message(self) -> str:
         """Вернуть строку сообщения"""
-        return (f'Тип тренировки: {self.training_type}; '
-                f'Длительность: {self.duration:.3f} ч.; '
-                f'Дистанция: {self.distance:.3f} км; '
-                f'Ср. скорость: {self.speed:.3f} км/ч; '
-                f'Потрачено ккал: {self.calories:.3f}.')
+        return self.message.format(**asdict(self))
 
 
 class Training:
@@ -123,15 +121,15 @@ class Swimming(Training):
                 * self.weight * self.duration)
 
 
-def read_package(workout_type: str, data: list) -> Training:
+def read_package(workout_type: str, data: List[int]) -> Training:
     """Прочитать данные полученные от датчиков."""
-    training_type: Dict[str, Type[Training]] = {
+    training_types: Dict[str, Type[Training]] = {
         'SWM': Swimming,
         'RUN': Running,
         'WLK': SportsWalking}
-    if workout_type in training_type:
-        return training_type[workout_type](*data)
-    return print('Ошибка. Такой тренировки нет')
+    if workout_type in training_types:
+        return training_types[workout_type](*data)
+    raise ('Ошибка. Такой тренировки нет')
 
 
 def main(training: Training) -> None:
